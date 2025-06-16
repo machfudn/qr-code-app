@@ -232,8 +232,8 @@ const QRCodeGenerator = () => {
 
       {/* Modal for enlarged QR Code */}
       {isModalOpen && (
-        <div className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4'>
-          <div className='bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full'>
+        <div className='fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4' onClick={() => setIsModalOpen(false)}>
+          <div className='bg-white dark:bg-gray-900 rounded-lg p-6 max-w-sm w-full' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
               <h2 className='text-xl font-bold text-gray-800 dark:text-white'>QR Code</h2>
               <button onClick={() => setIsModalOpen(false)} className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'>
