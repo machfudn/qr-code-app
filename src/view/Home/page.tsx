@@ -121,7 +121,7 @@ const QRCodeGenerator = () => {
   };
 
   return (
-    <div className='max-w-xl w-xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-6'>
+    <div className='max-w-xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-6'>
       <div className='mb-4'>
         <label htmlFor='qr-input' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
           Masukan Text atau URL
@@ -136,35 +136,37 @@ const QRCodeGenerator = () => {
         />
       </div>
 
-      <div className='flex flex-wrap gap-2 mb-4'>
-        <button onClick={generateQRCode} className='flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors'>
-          Generate
-        </button>
-        <button
-          onClick={toggleDarkMode}
-          className='p-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors'
-          aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-        >
-          {darkMode ? (
-            <svg xmlns='http://www.w3.org/2000/svg' className='h-6 text-amber-300 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={2}
-                d='M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'
-              />
-            </svg>
-          ) : (
-            <svg xmlns='http://www.w3.org/2000/svg' className='h-6 text-black w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={2}
-                d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'
-              />
-            </svg>
-          )}
-        </button>
+      <div className='flex flex-col md:flex-row flex-wrap gap-2 mb-4'>
+        <div className='flex flex-wrap gap-2'>
+          <button
+            onClick={toggleDarkMode}
+            className='p-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors'
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {darkMode ? (
+              <svg xmlns='http://www.w3.org/2000/svg' className='h-6 text-amber-300 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'
+                />
+              </svg>
+            ) : (
+              <svg xmlns='http://www.w3.org/2000/svg' className='h-6 text-black w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'
+                />
+              </svg>
+            )}
+          </button>
+          <button onClick={generateQRCode} className='flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors'>
+            Generate
+          </button>
+        </div>
 
         {qrCode && (
           <>
