@@ -37,8 +37,13 @@ const Home = () => {
   };
 
   const resetQRCode = () => {
-    setQrCode('');
-    setInput('');
+    try {
+      setQrCode('');
+      setInput('');
+      toast.success('QR Code berhasil di reset');
+    } catch (error) {
+      toast.error('QR Code gagal di reset:' + error);
+    }
   };
   const getFileName = (base = 'qrcode') => {
     const now = new Date();
