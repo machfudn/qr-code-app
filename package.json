@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "npm run build", 
+    "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
@@ -19,6 +19,7 @@
     "@types/qrcode": "^1.5.5",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
+    "path": "^0.12.7",
     "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
