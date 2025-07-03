@@ -11,7 +11,7 @@ Web App yang digunakan untuk membuat qr code dari teks maupun link url dengan me
 ## Live Demo
 
 Live Demo :
-<a href="https://qr-code-app-machfudn.vercel.app/" target="_blank">Lihat QR Code App</a>
+<a href="https://machfudn.github.io/qr-code-app/" target="_blank">Lihat QR Code App</a>
 
 ## Fitur Utama
 
