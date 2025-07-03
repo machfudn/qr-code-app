@@ -1,43 +1,17 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import QRCode from 'qrcode';
-import { toast } from 'react-hot-toast';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import Theme from '@/components/Theme';
+import { useToast } from '@/components/Toast';
 
 const Home = () => {
+  const toast = useToast();
   const [input, setInput] = useState('');
   const [qrCode, setQrCode] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const qrCodeRef = useRef<HTMLDivElement>(null);
   const [submitInput, setSubmitInput] = useState('');
-
-  //Tema handling
-  const [darkMode, setDarkMode] = useState(() => {
-    // Check local storage or system preference
-    if (typeof window !== 'undefined') {
-      const savedMode = localStorage.getItem('darkMode');
-      if (savedMode !== null) {
-        return savedMode === 'true';
-      }
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    // Apply dark mode class to document
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    // Save preference to local storage
-    localStorage.setItem('darkMode', darkMode.toString());
-  }, [darkMode]);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
 
   const generateQRCode = async () => {
     if (!input.trim()) {
@@ -56,10 +30,9 @@ const Home = () => {
         },
       });
       setQrCode(generatedQR);
-      toast.success('QR Code generated successfully!');
+      toast.success('Berhasil membuat QR Code!');
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to generate QR Code');
+      toast.error('Gagal membuat QR Code :' + error);
     }
   };
 
@@ -87,8 +60,7 @@ const Home = () => {
       link.click();
       toast.success('QR Code downloaded as image!');
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to download QR Code as image');
+      toast.error('Gagal Download QR Code Image :' + error);
     }
   };
 
@@ -115,8 +87,7 @@ const Home = () => {
       pdf.save(`${fileName}.pdf`); // Gunakan filename yang sudah reusable
       toast.success('QR Code downloaded as PDF!');
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to download QR Code as PDF');
+      toast.error('Gagal Download QR Code PDF :' + error);
     }
   };
 
@@ -138,30 +109,7 @@ const Home = () => {
 
       <div className='flex flex-col md:flex-row flex-wrap gap-2 mb-4'>
         <div className='flex flex-wrap gap-2'>
-          <button
-            onClick={toggleDarkMode}
-            className='p-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors'
-            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
-            {darkMode ? (
-              <svg xmlns='http://www.w3.org/2000/svg' className='h-6 text-amber-300 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'
-                />
-              </svg>
-            ) : (
-              <svg xmlns='http://www.w3.org/2000/svg' className='h-6 text-black w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'
-                />
-              </svg>
-            )}
-          </button>
+          <Theme />
           <button onClick={generateQRCode} className='flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors'>
             Generate
           </button>
