@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import QRCode from 'qrcode';
+import { QRCode } from '@/components/QrCode';
 import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+// import { jsPDF } from 'jspdf';
 import Theme from '@/components/Theme';
 import { useToast } from '@/components/Toast';
+import { IconX, IconDownload } from '@/components/Icons';
 
 const Home = () => {
   const toast = useToast();
@@ -16,6 +17,19 @@ const Home = () => {
   const [showError, setShowError] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [touched, setTouched] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    setIsDark(html.classList.contains('dark'));
+
+    const observer = new MutationObserver(() => {
+      setIsDark(html.classList.contains('dark'));
+    });
+
+    observer.observe(html, { attributes: true });
+    return () => observer.disconnect();
+  }, []);
 
   const isValidUrl = (url: string) => {
     const pattern = new RegExp('^(https?://)' + '([\\w\\d-]+.)+[\\w\\d]{2,}' + '(/\\S*)?$', 'i');
@@ -24,36 +38,24 @@ const Home = () => {
 
   const trimmedInput = input.trim();
 
-  const generateQRCode = async (e: React.FormEvent) => {
+  const generateQRCode = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!trimmedInput) {
+      setShowError(true);
       setMessage('Input tidak boleh kosong');
       return;
     }
 
     if (!isValidUrl(trimmedInput)) {
+      setShowError(true);
       setMessage('URL tidak valid. Harus diawali http:// atau https://');
       return;
     }
-
-    setMessage(''); // bersihkan error
-
-    try {
-      setSubmitInput(trimmedInput);
-      const generatedQR = await QRCode.toDataURL(trimmedInput, {
-        width: 400,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#ffffff',
-        },
-      });
-      setQrCode(generatedQR);
-      toast.success('Berhasil membuat QR Code!');
-    } catch (error) {
-      toast.error('Gagal membuat QR Code: ' + error);
-    }
+    setSubmitInput(trimmedInput);
+    setQrCode(trimmedInput);
+    setShowSuccess(true);
+    toast.success('Berhasil membuat QR Code!');
   };
   useEffect(() => {
     if (!touched) return;
@@ -99,44 +101,31 @@ const Home = () => {
   const fileName = getFileName();
 
   const downloadQRCodeAsImage = async () => {
-    if (!qrCodeRef.current) return;
+    if (!qrCodeRef.current) {
+      toast.error('QR Code element not found');
+      return;
+    }
 
     try {
-      const canvas = await html2canvas(qrCodeRef.current);
+      toast.info('Preparing download...', { duration: 1000 });
+
+      const canvas = await html2canvas(qrCodeRef.current, {
+        scale: 2, // Untuk kualitas lebih tinggi
+        logging: false,
+        useCORS: true,
+      });
+
+      // Buat link download
       const link = document.createElement('a');
       link.download = `${fileName}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = canvas.toDataURL('image/png', 1.0); // Kualitas maksimal
+      document.body.appendChild(link);
       link.click();
-      toast.success('QR Code downloaded as image!');
+      document.body.removeChild(link);
+
+      toast.success('Download completed!');
     } catch (error) {
-      toast.error('Gagal Download QR Code Image :' + error);
-    }
-  };
-
-  const downloadQRCodeAsPDF = async () => {
-    if (!qrCodeRef.current) return;
-
-    try {
-      const canvas = await html2canvas(qrCodeRef.current);
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF();
-
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      // Ukuran QR Code di PDF (misalnya setengah dari halaman)
-      const qrWidth = pageWidth / 2;
-      const qrHeight = (canvas.height * qrWidth) / canvas.width;
-
-      // Posisi tengah
-      const x = (pageWidth - qrWidth) / 2;
-      const y = (pageHeight - qrHeight) / 2;
-
-      pdf.addImage(imgData, 'PNG', x, y, qrWidth, qrHeight);
-      pdf.save(`${fileName}.pdf`); // Gunakan filename yang sudah reusable
-      toast.success('QR Code downloaded as PDF!');
-    } catch (error) {
-      toast.error('Gagal Download QR Code PDF :' + error);
+      toast.error(`Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -197,68 +186,81 @@ const Home = () => {
 
       {qrCode && (
         <div className='mt-6'>
-          <div className='flex flex-col items-center p-4 bg-white rounded-md'>
-            <img src={qrCode} alt='Generated QR Code' className='w-48 h-48' />
-            <p className='mt-2 text-sm text-gray-600 dark:text-gray-400 break-all max-w-xs text-center'>{submitInput}</p>
+          {/* Tampilan utama */}
+          <div className='flex flex-col items-center p-4 bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700'>
+            <QRCode value={submitInput} isDark={isDark} />
+            <p className='mt-2 text-sm text-gray-600 dark:text-gray-300 break-all max-w-xs text-center'>{submitInput}</p>
           </div>
-          {/* Versi yang digunakan hanya untuk download dengan html2canvas (disembunyikan dari layar) */}
+
+          {/* Hidden div untuk download */}
+          {/* Versi untuk download */}
           <div
             ref={qrCodeRef}
             style={{
-              backgroundColor: '#ffffff',
-              color: '#000000',
-              padding: '1rem',
-              borderRadius: '0.5rem',
-              textAlign: 'center',
+              position: 'absolute',
+              left: '-9999px',
+              top: '-9999px',
+              padding: '1.5rem',
+              backgroundColor: isDark ? '#1f2937' : '#ffffff',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               width: 'fit-content',
-              margin: '0 auto',
-              position: 'absolute',
-              top: '-9999px', // disembunyikan dari layar tapi tetap bisa dirender html2canvas
-              left: '-9999px',
             }}>
-            <img src={qrCode} alt='Generated QR Code' style={{ width: '192px', height: '192px' }} />
-            <p style={{ marginTop: '0.5rem', color: 'gray', fontSize: '0.875rem', maxWidth: '16rem', wordBreak: 'break-word' }}>{submitInput}</p>
-            <p style={{ marginTop: '0.5rem', color: 'black', fontSize: '0.875rem', maxWidth: '16rem', wordBreak: 'break-word' }}>
-              Created By <span style={{ color: 'blue' }}>QR Code App</span>
+            <QRCode value={submitInput} size={256} bgColor={isDark ? '#1f2937' : '#ffffff'} fgColor={isDark ? '#f3f4f6' : '#111827'} />
+            <p
+              style={{
+                marginTop: '1rem',
+                color: isDark ? '#f3f4f6' : '#111827',
+                fontSize: '0.875rem',
+                maxWidth: '16rem',
+                textAlign: 'center',
+              }}>
+              {submitInput}
+            </p>
+            <p
+              style={{
+                marginTop: '0.5rem',
+                color: isDark ? '#d1d5db' : '#6b7280',
+                fontSize: '0.75rem',
+              }}>
+              Generated by QR Code App
             </p>
           </div>
 
+          {/* Tombol download */}
           <div className='flex flex-wrap gap-2 mt-4'>
             <button
               type='button'
               onClick={downloadQRCodeAsImage}
-              className='flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors'>
-              Download as Image
-            </button>
-            <button
-              type='button'
-              onClick={downloadQRCodeAsPDF}
-              className='flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md transition-colors'>
-              Download as PDF
+              className='flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors flex items-center justify-center gap-2'
+              disabled={!qrCode}>
+              <IconDownload />
+              Download Image
             </button>
           </div>
         </div>
       )}
 
-      {/* Modal for enlarged QR Code */}
+      {/* Modal */}
       {isModalOpen && (
-        <div className='fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4' onClick={() => setIsModalOpen(false)}>
-          <div className='bg-white dark:bg-gray-900 rounded-lg p-6 max-w-sm w-full' onClick={e => e.stopPropagation()}>
-            <div className='flex justify-between items-center mb-4'>
-              <h2 className='text-xl font-bold text-gray-800 dark:text-white'>QR Code</h2>
-              <button onClick={() => setIsModalOpen(false)} className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'>
-                <svg xmlns='http://www.w3.org/2000/svg' className='h-6 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                </svg>
+        <div className='fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4'>
+          <div className='bg-white dark:bg-gray-900 rounded-lg p-6 max-w-sm w-full relative' onClick={e => e.stopPropagation()}>
+            {/* Header dengan judul di tengah dan tombol close di kanan */}
+            <div className='relative mb-4'>
+              <h2 className='text-xl font-bold text-gray-800 dark:text-white text-center'>QR Code</h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className='absolute top-0 right-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'>
+                <IconX />
               </button>
             </div>
-            <div className='flex justify-center'>
-              <img src={qrCode} alt='Enlarged QR Code' className='w-full max-w-xs' />
+
+            {/* Konten QR Code */}
+            <div className='flex justify-center p-4 bg-white dark:bg-gray-900 rounded-md'>
+              <QRCode value={submitInput} isDark={isDark} size={256} />
             </div>
-            <p className='mt-4 text-sm text-black-600 dark:text-gray-400 text-center break-all'>{submitInput}</p>
+            <p className='mt-4 text-sm text-gray-600 dark:text-gray-300 text-center break-all'>{submitInput}</p>
           </div>
         </div>
       )}
