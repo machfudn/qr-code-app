@@ -1,5 +1,5 @@
-import { createContext, useContext, useState } from 'react';
-import type { ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
+import { IconCheck, IconInfo, IconXmark } from '@/components/Icons';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -7,6 +7,7 @@ type Toast = {
   id: number;
   message: string;
   type: ToastType;
+  icon?: ReactNode;
 };
 
 type ToastContextType = {
@@ -24,21 +25,20 @@ let toastId = 0;
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = (type: ToastType, message: string) => {
+  const showToast = (type: ToastType, icon: ReactNode, message: string) => {
     const id = toastId++;
-    const newToast: Toast = { id, type, message };
+    const newToast: Toast = { id, type, message, icon };
     setToasts(prev => [...prev, newToast]);
 
-    // Otomatis hilang setelah 3 detik
     setTimeout(() => {
       setToasts(prev => prev.filter(toast => toast.id !== id));
     }, 3000);
   };
 
   const toast = {
-    success: (msg: string) => showToast('success', msg),
-    error: (msg: string) => showToast('error', msg),
-    info: (msg: string) => showToast('info', msg),
+    success: (msg: string) => showToast('success', <IconCheck />, msg),
+    error: (msg: string) => showToast('error', <IconXmark />, msg),
+    info: (msg: string) => showToast('info', <IconInfo />, msg),
   };
 
   return (
@@ -48,12 +48,13 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
         {toasts.map(t => (
           <div
             key={t.id}
-            className={`px-4 py-2 rounded shadow text-white ${
+            className={`px-4 py-2 rounded shadow text-white flex items-center gap-2 ${
               t.type === 'success' ? 'bg-green-600' : t.type === 'error' ? 'bg-red-600' : 'bg-gray-600'
             }`}
             style={{
               animation: 'slideUpFade 3s forwards',
             }}>
+            {t.icon && <span>{t.icon}</span>}
             {t.message}
           </div>
         ))}
