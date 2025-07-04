@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { QRCode } from '@/components/QrCode';
 import html2canvas from 'html2canvas';
+
 // import { jsPDF } from 'jspdf';
 import Theme from '@/components/Theme';
 import { useToast } from '@/components/Toast';
@@ -119,14 +120,17 @@ const Home = () => {
     }
 
     try {
-      toast.info('Preparing download...', { duration: 1000 });
-
-      const canvas = await html2canvas(qrCodeRef.current, {
-        scale: 2, // Untuk kualitas lebih tinggi
+      toast.info('Preparing download...');
+      interface CustomHtml2CanvasOptions {
+        scale?: number;
+        logging?: boolean;
+        useCORS?: boolean;
+      }
+      const canvas = await html2canvas(qrCodeRef.current!, {
+        scale: 2,
         logging: false,
         useCORS: true,
-      });
-
+      } as CustomHtml2CanvasOptions);
       // Buat link download
       const link = document.createElement('a');
       link.download = `${fileName}.png`;
