@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import QRCode from 'qrcode';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -12,16 +12,36 @@ const Home = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const qrCodeRef = useRef<HTMLDivElement>(null);
   const [submitInput, setSubmitInput] = useState('');
+  const [message, setMessage] = useState('');
+  const [showError, setShowError] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [touched, setTouched] = useState(false);
 
-  const generateQRCode = async () => {
-    if (!input.trim()) {
-      toast.error('Please enter text or URL');
+  const isValidUrl = (url: string) => {
+    const pattern = new RegExp('^(https?://)' + '([\\w\\d-]+.)+[\\w\\d]{2,}' + '(/\\S*)?$', 'i');
+    return pattern.test(url);
+  };
+
+  const trimmedInput = input.trim();
+
+  const generateQRCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!trimmedInput) {
+      setMessage('Input tidak boleh kosong');
       return;
     }
 
+    if (!isValidUrl(trimmedInput)) {
+      setMessage('URL tidak valid. Harus diawali http:// atau https://');
+      return;
+    }
+
+    setMessage(''); // bersihkan error
+
     try {
-      setSubmitInput(input);
-      const generatedQR = await QRCode.toDataURL(input, {
+      setSubmitInput(trimmedInput);
+      const generatedQR = await QRCode.toDataURL(trimmedInput, {
         width: 400,
         margin: 2,
         color: {
@@ -32,14 +52,38 @@ const Home = () => {
       setQrCode(generatedQR);
       toast.success('Berhasil membuat QR Code!');
     } catch (error) {
-      toast.error('Gagal membuat QR Code :' + error);
+      toast.error('Gagal membuat QR Code: ' + error);
     }
   };
+  useEffect(() => {
+    if (!touched) return;
+
+    if (!trimmedInput) {
+      setShowError(true);
+      setShowSuccess(false);
+      setMessage('Input tidak boleh kosong');
+      return;
+    }
+
+    if (!isValidUrl(trimmedInput)) {
+      setShowError(true);
+      setShowSuccess(false);
+      setMessage('URL tidak valid. Harus diawali http:// atau https://');
+      return;
+    }
+
+    setShowSuccess(true);
+    setShowError(false);
+    setMessage('');
+  }, [input, touched]);
 
   const resetQRCode = () => {
     try {
+      setMessage('');
       setQrCode('');
       setInput('');
+      setShowSuccess(false);
+      setTouched(false);
       toast.success('QR Code berhasil di reset');
     } catch (error) {
       toast.error('QR Code gagal di reset:' + error);
@@ -98,41 +142,58 @@ const Home = () => {
 
   return (
     <div className='max-w-xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-6'>
-      <div className='mb-4'>
-        <label htmlFor='qr-input' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-          Masukan Text atau URL
-        </label>
-        <input
-          id='qr-input'
-          type='text'
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white'
-          placeholder='example or https://example.com'
-        />
-      </div>
+      <form onSubmit={generateQRCode} className='mb-4'>
+        <div className='mb-4'>
+          <label htmlFor='qr-input' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+            Masukan URL
+          </label>
+          <input
+            value={input}
+            name='qr-input'
+            id='qr-input'
+            onChange={e => setInput(e.target.value)}
+            onBlur={() => setTouched(true)}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2
+          ${
+            showError
+              ? 'border-red-500 focus:ring-red-500'
+              : showSuccess
+              ? 'border-green-500 focus:ring-green-500'
+              : 'border-gray-300 focus:ring-blue-500 dark:border-gray-600'
+          }
+            dark:bg-gray-700 dark:text-white`}
+            placeholder='https://example.com'
+          />
 
-      <div className='flex flex-col md:flex-row flex-wrap gap-2 mb-4'>
-        <div className='flex flex-wrap gap-2'>
-          <Theme />
-          <button onClick={generateQRCode} className='flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors'>
-            Generate
-          </button>
+          {showError && <p className='text-sm text-red-500 mt-1'>{message}</p>}
         </div>
 
-        {qrCode && (
-          <>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className='flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md transition-colors'>
-              Display QR Code
+        <div className='flex flex-col md:flex-row flex-wrap gap-2 mb-4'>
+          <div className='flex flex-wrap gap-2'>
+            <Theme />
+            <button type='submit' className='flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors'>
+              Generate
             </button>
-            <button onClick={resetQRCode} className='flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition-colors'>
-              Reset
-            </button>
-          </>
-        )}
-      </div>
+          </div>
+
+          {qrCode && (
+            <div className='flex flex-col sm:flex-row md:flex-1 w-full gap-2'>
+              <button
+                type='button'
+                onClick={resetQRCode}
+                className='flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition-colors'>
+                Reset
+              </button>
+              <button
+                type='button'
+                onClick={() => setIsModalOpen(true)}
+                className='flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md transition-colors'>
+                Display QR Code
+              </button>
+            </div>
+          )}
+        </div>
+      </form>
 
       {qrCode && (
         <div className='mt-6'>
@@ -167,11 +228,13 @@ const Home = () => {
 
           <div className='flex flex-wrap gap-2 mt-4'>
             <button
+              type='button'
               onClick={downloadQRCodeAsImage}
               className='flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors'>
               Download as Image
             </button>
             <button
+              type='button'
               onClick={downloadQRCodeAsPDF}
               className='flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md transition-colors'>
               Download as PDF
