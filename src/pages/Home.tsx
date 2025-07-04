@@ -18,6 +18,7 @@ const Home = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [touched, setTouched] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -52,11 +53,23 @@ const Home = () => {
       setMessage('URL tidak valid. Harus diawali http:// atau https://');
       return;
     }
-    setSubmitInput(trimmedInput);
-    setQrCode(trimmedInput);
-    setShowSuccess(true);
-    toast.success('Berhasil membuat QR Code!');
+
+    setIsLoading(true);
+
+    try {
+      setSubmitInput(trimmedInput);
+      setQrCode(trimmedInput); // Jika menggunakan QRCode.toDataURL, ganti dengan await
+      setShowSuccess(true);
+      toast.success('Berhasil membuat QR Code!');
+    } catch (error) {
+      toast.error('Terjadi kesalahan saat membuat QR Code');
+      setShowError(true);
+      setMessage('Gagal membuat QR Code:' + error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
   useEffect(() => {
     if (!touched) return;
 
@@ -73,7 +86,6 @@ const Home = () => {
       setMessage('URL tidak valid. Harus diawali http:// atau https://');
       return;
     }
-
     setShowSuccess(true);
     setShowError(false);
     setMessage('');
@@ -160,8 +172,13 @@ const Home = () => {
         <div className='flex flex-col md:flex-row flex-wrap gap-2 mb-4'>
           <div className='flex flex-wrap gap-2'>
             <Theme />
-            <button type='submit' className='flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors'>
-              Generate
+            <button
+              type='submit'
+              disabled={isLoading}
+              className={`flex-1 py-2 px-4 rounded-md transition-colors text-white ${
+                isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+              }`}>
+              {isLoading ? 'Generate...' : 'Generate'}
             </button>
           </div>
 
