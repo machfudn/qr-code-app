@@ -17,6 +17,7 @@ Live Demo : [Lihat QR Code App](https://machfudn.github.io/qr-code-app/)
 - Download QR Code Gambar & PDF
 - Dukungan dark & light mode
 - Responsif di semua perangkat
+- Customisasi warna QR Code
 
 ## Teknologi yang Digunakan
 
