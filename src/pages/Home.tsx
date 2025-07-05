@@ -2,10 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { QRCode } from '@/components/QrCode';
 import html2canvas from 'html2canvas';
 
-// import { jsPDF } from 'jspdf';
 import Theme from '@/components/Theme';
 import { useToast } from '@/components/Toast';
-import { IconX, IconDownload } from '@/components/Icons';
+import { IconX, IconDownload, IconCheck, IconXmark } from '@/components/Icons';
 
 const Home = () => {
   const toast = useToast();
@@ -45,7 +44,7 @@ const Home = () => {
 
     if (!trimmedInput) {
       setShowError(true);
-      setMessage('Input tidak boleh kosong');
+      setMessage('URL kosong');
       return;
     }
 
@@ -97,6 +96,7 @@ const Home = () => {
       setMessage('');
       setQrCode('');
       setInput('');
+      setShowError(false);
       setShowSuccess(false);
       setTouched(false);
       toast.success('QR Code berhasil di reset');
@@ -152,23 +152,36 @@ const Home = () => {
           <label htmlFor='qr-input' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
             Masukan URL
           </label>
-          <input
-            value={input}
-            name='qr-input'
-            id='qr-input'
-            onChange={e => setInput(e.target.value)}
-            onBlur={() => setTouched(true)}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2
-          ${
-            showError
-              ? 'border-red-500 focus:ring-red-500'
-              : showSuccess
-              ? 'border-green-500 focus:ring-green-500'
-              : 'border-gray-300 focus:ring-blue-500 dark:border-gray-600'
-          }
-            dark:bg-gray-700 dark:text-white`}
-            placeholder='https://example.com'
-          />
+          <div className='relative'>
+            <input
+              value={input}
+              name='qr-input'
+              id='qr-input'
+              onChange={e => setInput(e.target.value)}
+              onBlur={() => setTouched(true)}
+              className={`w-full pr-10 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2
+      ${
+        showError
+          ? 'border-red-500 focus:ring-red-500'
+          : showSuccess
+          ? 'border-green-500 focus:ring-green-500'
+          : 'border-gray-300 focus:ring-blue-500 dark:border-gray-600'
+      }
+      dark:bg-gray-700 dark:text-white`}
+              placeholder='https://example.com'
+            />
+
+            {showError && (
+              <span className='absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none'>
+                <IconXmark className='w-5 h-5 fill-red-500' />
+              </span>
+            )}
+            {showSuccess && !showError && (
+              <span className='absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none'>
+                <IconCheck className='w-5 h-5 fill-green-500' />
+              </span>
+            )}
+          </div>
 
           {showError && <p className='text-sm text-red-500 mt-1'>{message}</p>}
         </div>

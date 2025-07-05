@@ -37,9 +37,9 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const toast = {
-    success: (msg: string) => showToast('success', <IconCheck />, msg),
-    error: (msg: string) => showToast('error', <IconXmark />, msg),
-    info: (msg: string) => showToast('info', <IconInfo />, msg),
+    success: (msg: string) => showToast('success', <IconCheck className='w-4 h-4 fill-current' />, msg),
+    error: (msg: string) => showToast('error', <IconXmark className='w-4 h-4 fill-current' />, msg),
+    info: (msg: string) => showToast('info', <IconInfo className='w-4 h-4 fill-current' />, msg),
   };
 
   return (
