@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { QRCode } from '@/components/QrCode';
 import html2canvas from 'html2canvas';
-
 import Theme from '@/components/Theme';
 import { useToast } from '@/components/Toast';
-import { IconX, IconDownload, IconCheck, IconXmark } from '@/components/Icons';
+import { IconX, IconDownload, IconCheck, IconXmark, IconEdit } from '@/components/Icons';
 
 const Home = () => {
   const toast = useToast();
@@ -12,6 +11,8 @@ const Home = () => {
   const [qrCode, setQrCode] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const qrCodeRef = useRef<HTMLDivElement>(null);
+  const [bgColor, setBgColor] = useState('ffffff'); // tanpa #
+  const [fgColor, setFgColor] = useState('000000');
   const [submitInput, setSubmitInput] = useState('');
   const [message, setMessage] = useState('');
   const [showError, setShowError] = useState(false);
@@ -19,6 +20,7 @@ const Home = () => {
   const [touched, setTouched] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showCustomizer, setShowCustomizer] = useState(false);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -222,7 +224,7 @@ const Home = () => {
         <div className='mt-6'>
           {/* Tampilan utama */}
           <div className='flex flex-col items-center p-4 bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700'>
-            <QRCode value={submitInput} isDark={isDark} />
+            <QRCode value={submitInput} isDark={isDark} bgColor={`#${bgColor}`} fgColor={`#${fgColor}`} />
             <p className='mt-2 text-sm text-gray-600 dark:text-gray-300 break-all max-w-xs text-center'>{submitInput}</p>
           </div>
 
@@ -230,6 +232,7 @@ const Home = () => {
           {/* Versi untuk download */}
           <div
             ref={qrCodeRef}
+            className='hidden'
             style={{
               position: 'absolute',
               left: '-9999px',
@@ -241,7 +244,7 @@ const Home = () => {
               alignItems: 'center',
               width: 'fit-content',
             }}>
-            <QRCode value={submitInput} size={256} bgColor={isDark ? '#1f2937' : '#ffffff'} fgColor={isDark ? '#f3f4f6' : '#111827'} />
+            <QRCode value={submitInput} isDark={isDark} bgColor={`#${bgColor}`} fgColor={`#${fgColor}`} />
             <p
               style={{
                 marginTop: '1rem',
@@ -263,7 +266,63 @@ const Home = () => {
           </div>
 
           {/* Tombol download */}
-          <div className='flex flex-wrap gap-2 mt-4'>
+          <div className='flex flex-col gap-2 mt-4'>
+            <button
+              type='button'
+              onClick={() => setShowCustomizer(prev => !prev)}
+              className='w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-md transition-colors flex items-center justify-center gap-2'
+              disabled={!input}>
+              <IconEdit />
+              {showCustomizer ? 'Hide Customize' : 'Customize QR Code'}
+            </button>
+
+            {/* Customizer Inputs */}
+            {showCustomizer && (
+              <div className='flex flex-col md:flex-row gap-4 justify-center dark:text-white mb-2'>
+                <div className='w-full md:w-1/2'>
+                  <label htmlFor='bgColor' className='text-sm block mb-1 text-start'>
+                    QR Code Background (Hex)
+                  </label>
+                  <div className='relative'>
+                    <input
+                      id='bgColor'
+                      name='bgColor'
+                      type='text'
+                      value={bgColor}
+                      maxLength={6}
+                      onChange={e => {
+                        const value = e.target.value.replace(/[^a-fA-F0-9]/g, '').slice(0, 6);
+                        setBgColor(value);
+                      }}
+                      className='w-full pl-7 px-2 py-1 border rounded'
+                      placeholder='ffffff'
+                    />
+                    <span className='absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none dark:text-white'>#</span>
+                  </div>
+                </div>
+                <div className='w-full md:w-1/2'>
+                  <label htmlFor='fgColor' className='text-sm block mb-1 text-start'>
+                    QR Code Text (Hex)
+                  </label>
+                  <div className='relative'>
+                    <input
+                      id='fgColor'
+                      name='fgColor'
+                      type='text'
+                      value={fgColor}
+                      maxLength={6}
+                      onChange={e => {
+                        const value = e.target.value.replace(/[^a-fA-F0-9]/g, '').slice(0, 6);
+                        setFgColor(value);
+                      }}
+                      className='w-full pl-7 px-2 py-1 border rounded'
+                      placeholder='000000'
+                    />
+                    <span className='absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none dark:text-white'>#</span>
+                  </div>
+                </div>
+              </div>
+            )}
             <button
               type='button'
               onClick={downloadQRCodeAsImage}
@@ -292,7 +351,7 @@ const Home = () => {
 
             {/* Konten QR Code */}
             <div className='flex justify-center p-4 bg-white dark:bg-gray-900 rounded-md'>
-              <QRCode value={submitInput} isDark={isDark} size={256} />
+              <QRCode value={submitInput} isDark={isDark} bgColor={`#${bgColor}`} fgColor={`#${fgColor}`} />
             </div>
             <p className='mt-4 text-sm text-gray-600 dark:text-gray-300 text-center break-all'>{submitInput}</p>
           </div>
